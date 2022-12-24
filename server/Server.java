@@ -25,12 +25,24 @@ public class Server {
 				@Override
 				public void run() {
 					try {
-						writeMsg(socket.getOutputStream(), "Welcome\r\n"); // send welcome message to client indicating the connection is successful																		// successfully connected
-						String userName = readMsg(socket.getInputStream()); // read client name
-						socketMap.put(userName, socket); // store current client name and socket
-						System.out.println(userName + " is online!");
-						// create a new connection for this client
-						new Thread(new Connections(socket, socketMap, userName)).start();
+						String accountName = readMsg(socket.getInputStream()); // read client accountName
+						String password = readMsg(socket.getInputStream()); // read client password
+						// verify account name and password
+						boolean isCorrect = false;
+						// ..........
+						if (isCorrect) {
+							// send welcome message to client indicating the connection is successful
+							writeMsg(socket.getOutputStream(), "1");
+							socketMap.put(accountName, socket); // store current client name and socket
+							System.out.println(accountName + " is online!");
+							// create a new connection for this client
+							new Thread(new Connections(socket, socketMap, accountName)).start();
+
+						} else {
+							// send welcome message to client indicating the connection is successful
+							writeMsg(socket.getOutputStream(), "0");
+						}
+
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -46,7 +58,7 @@ public class Server {
 	}
 
 	public void writeMsg(OutputStream nextOutput, String msg) throws IOException {
-		nextOutput.write((msg).getBytes());
+		nextOutput.write((msg + "\r\n").getBytes());
 	}
 
 	public static void main(String[] args) {

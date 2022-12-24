@@ -19,17 +19,53 @@ public class ClientUI {
 	 */
 	public ClientUI(String user) {
 		client = new Client("127.0.0.1", 8080, user);
-		chatUI(user);
-
-		try {
-			client.writeMsg(user); // client user name to server
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		loginUI();
 	}
 
-	/*
-	 * create the UI for user user: name of the user
+	/**
+	 * create user login UI
+	 */
+	public void loginUI() {
+		JFrame loginFrame = new JFrame("Login");
+		loginFrame.setSize(450, 400);
+
+		// center alignment
+		loginFrame.setLocationRelativeTo(null);
+
+		// set how to close
+		loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		loginFrame.setLayout(new FlowLayout());
+
+		// account name
+		JLabel accountLabel = new JLabel("Account");
+		loginFrame.add(accountLabel);
+		// account name text field
+		JTextField accountField = new JTextField();
+		accountField.setPreferredSize(new Dimension(350, 30));
+		loginFrame.add(accountField);
+
+		// password name
+		JLabel passwordLabel = new JLabel("Password");
+		loginFrame.add(passwordLabel);
+		// account name text field
+		JTextField passwordField = new JTextField();
+		passwordField.setPreferredSize(new Dimension(350, 30));
+		loginFrame.add(passwordField);
+		// login button
+		JButton loginButton = new JButton("Login");
+		loginFrame.add(loginButton);
+		// create new account button
+		JButton newAccountButton = new JButton("New account");
+		loginFrame.add(newAccountButton);
+
+		loginFrame.setVisible(true);
+
+	}
+
+	/**
+	 * create the chating UI
+	 * 
+	 * @param user user name
 	 */
 	public void chatUI(String user) {
 		JFrame chatFrame = new JFrame("client: " + user);
@@ -58,51 +94,11 @@ public class ClientUI {
 
 		// add send button
 		JButton sendButton = new JButton("  send  ");
-		sendButton.addActionListener(new ActionListener() {
-
-			/**
-			 * after click send button, three things are going to happen 1. send msg to
-			 * server 2. show msg in the showChatArea 3. clear msg in the chatOutMsgArea
-			 */
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// 1. send msg to server
-				// get text from the chatOutMsgArea
-				String msg = chatOutMsgArea.getText();
-				// 2. show msg in the showChatArea
-				showChatArea.setText(showChatArea.getText() + "\r\n" + msg);
-				try {
-					client.writeMsg(msg);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				// 3. clear msg in the chatOutMsgArea
-				chatOutMsgArea.setText("");
-			}
-		});
+		ClientListener listener = new ClientListener();
+		sendButton.addActionListener(listener);
 		chatFrame.add(sendButton);
 
-		new Thread(new Runnable() {
-
-			/**
-			 * read message from the server, show the msg in the chat history
-			 */
-			@Override
-			public void run() {
-				// put into while, let it read from server all the time
-				while (true) {
-					try {
-						String msg = client.readMsg();
-						System.out.println(msg);
-						showChatArea.setText(showChatArea.getText() + "\r\n" + msg);
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		}).start();
+		new Thread(new ClientThread()).start();
 		chatFrame.setVisible(true);
 	}
 

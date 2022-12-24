@@ -25,8 +25,6 @@ public class Client {
 			is = socket.getInputStream();
 			os = socket.getOutputStream();
 			br = new BufferedReader(new InputStreamReader(is));
-			String inputMsg = readMsg(); // read welcome message from server
-			System.out.println("client " + user + " connected, " + inputMsg);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
