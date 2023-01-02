@@ -10,6 +10,12 @@ import javax.swing.*;
 
 public class ClientUI {
 	private Client client;
+	private JTextArea showChatArea = new JTextArea();
+	private ClientListener listener;
+	private JTextArea chatOutMsgArea = new JTextArea();
+	private JTextField accountField = new JTextField();
+	private JTextField passwordField = new JTextField();
+	private String clientID;
 
 	/**
 	 * Once a client is created, connects with server automatically Generate the
@@ -18,8 +24,12 @@ public class ClientUI {
 	 * @param user the client name
 	 */
 	public ClientUI(String user) {
-		client = new Client("127.0.0.1", 8080, user);
+		this.clientID = user;
+		client = new Client("127.0.0.1", 8080, clientID);
+		listener = new ClientListener(chatOutMsgArea, showChatArea, accountField, passwordField, client);
 		loginUI();
+		// start the client thread
+		new Thread(new ClientThread(client, showChatArea, this)).start();
 	}
 
 	/**
@@ -40,7 +50,6 @@ public class ClientUI {
 		JLabel accountLabel = new JLabel("Account");
 		loginFrame.add(accountLabel);
 		// account name text field
-		JTextField accountField = new JTextField();
 		accountField.setPreferredSize(new Dimension(350, 30));
 		loginFrame.add(accountField);
 
@@ -48,18 +57,17 @@ public class ClientUI {
 		JLabel passwordLabel = new JLabel("Password");
 		loginFrame.add(passwordLabel);
 		// account name text field
-		JTextField passwordField = new JTextField();
 		passwordField.setPreferredSize(new Dimension(350, 30));
 		loginFrame.add(passwordField);
 		// login button
 		JButton loginButton = new JButton("Login");
 		loginFrame.add(loginButton);
+		loginButton.addActionListener(listener);
 		// create new account button
 		JButton newAccountButton = new JButton("New account");
 		loginFrame.add(newAccountButton);
-
+		newAccountButton.addActionListener(listener);
 		loginFrame.setVisible(true);
-
 	}
 
 	/**
@@ -67,8 +75,8 @@ public class ClientUI {
 	 * 
 	 * @param user user name
 	 */
-	public void chatUI(String user) {
-		JFrame chatFrame = new JFrame("client: " + user);
+	public void chatUI() {
+		JFrame chatFrame = new JFrame("client: " + clientID);
 		chatFrame.setSize(500, 600);
 
 		// center alignment
@@ -81,28 +89,23 @@ public class ClientUI {
 		// show message area
 		// chat history
 		Font font = new Font(null, 0, 24);
-		JTextArea showChatArea = new JTextArea();
 		showChatArea.setFont(font);
 		showChatArea.setPreferredSize(new Dimension(450, 400));
 		chatFrame.add(showChatArea);
 
 		// add text area
-		JTextArea chatOutMsgArea = new JTextArea();
 		chatOutMsgArea.setFont(font);
 		chatOutMsgArea.setPreferredSize(new Dimension(450, 100));
 		chatFrame.add(chatOutMsgArea);
 
 		// add send button
 		JButton sendButton = new JButton("  send  ");
-		ClientListener listener = new ClientListener();
 		sendButton.addActionListener(listener);
 		chatFrame.add(sendButton);
-
-		new Thread(new ClientThread()).start();
 		chatFrame.setVisible(true);
 	}
 
 	public static void main(String[] args) {
-		new ClientUI("3");
+		new ClientUI("1");
 	}
 }

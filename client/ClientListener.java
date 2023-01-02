@@ -17,6 +17,16 @@ public class ClientListener implements ActionListener {
 	private JTextField accountField, passwordField;
 	private Client client;
 
+	public ClientListener(JTextArea chatOutMsgArea, JTextArea showChatArea, JTextField accountField,
+			JTextField passwordField, Client client) {
+		super();
+		this.chatOutMsgArea = chatOutMsgArea;
+		this.showChatArea = showChatArea;
+		this.accountField = accountField;
+		this.passwordField = passwordField;
+		this.client = client;
+	}
+
 	/**
 	 * actions for each button 1. "Login": if account and password are correct, show
 	 * the chat UI 2. "New account": create a new account 3. "send": send msg
@@ -30,6 +40,7 @@ public class ClientListener implements ActionListener {
 				login();
 				break;
 			case "New account":
+				register();
 				break;
 			case "  send  ":
 				send();
@@ -42,14 +53,23 @@ public class ClientListener implements ActionListener {
 	}
 
 	/**
-	 * send account name and password to server
+	 * call client.register() to create a new account
 	 * 
+	 * @throws Exception
+	 */
+	private void register() throws Exception {
+		client.register(accountField.getText(), passwordField.getText());
+
+	}
+
+	/**
+	 * call client.login() to validate the account and password
+	 * 
+	 * @throws Exception
 	 */
 	private void login() throws Exception {
-		String accountName = accountField.getText();
-		String password = passwordField.getText();
-		client.writeMsg(accountName);
-		client.writeMsg(password);
+		client.login(accountField.getText(), passwordField.getText());
+
 	}
 
 	/**

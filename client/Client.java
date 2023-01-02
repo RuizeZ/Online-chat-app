@@ -7,13 +7,14 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Client {
+public class Client implements MsgHeader {
 	InputStream is;
 	OutputStream os;
 	BufferedReader br;
 
 	/**
-	 * connects with server, and receive server welcome message
+	 * connects with server, and receive server welcome message implements all API
+	 * of client
 	 * 
 	 * @param host server IP
 	 * @param port server port
@@ -37,6 +38,36 @@ public class Client {
 	}
 
 	public void writeMsg(String msg) throws Exception {
+		System.out.println("send: " + msg);
 		os.write((msg + "\r\n").getBytes());
+		os.flush();
 	}
+
+	/**
+	 * send the login header(1) to server; send account name and password to server
+	 * 
+	 * @param accountName
+	 * @param password
+	 * @throws Exception
+	 */
+	public void login(String accountName, String password) throws Exception {
+		os.write(LOGINHEADER);// send the header of login msg
+		writeMsg(accountName);
+		writeMsg(password);
+	}
+
+	/**
+	 * send the login header(2) to server; send account name and password to server
+	 * 
+	 * @param accountName
+	 * @param password
+	 * @throws Exception
+	 */
+	public void register(String accountName, String password) throws Exception {
+		System.out.println("registing...");
+		os.write(REGISTERHEADER);// send the header of register msg
+		writeMsg(accountName);
+		writeMsg(password);
+	}
+
 }

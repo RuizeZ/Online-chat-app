@@ -1,13 +1,16 @@
 package NetworkProgramming.server;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.*;
 
 public class Connections implements Runnable {
 	Socket socket;
+	private BufferedReader br;
 	InputStream input;
 	OutputStream output;
 	Map<String, Socket> socketMap;
@@ -17,6 +20,7 @@ public class Connections implements Runnable {
 		this.socket = socket;
 		input = socket.getInputStream();
 		output = socket.getOutputStream();
+		br = new BufferedReader(new InputStreamReader(input));
 		this.socketMap = socketMap;
 		this.userName = userName;
 	}
@@ -27,7 +31,7 @@ public class Connections implements Runnable {
 		while (true) {
 			String clientMsg;
 			try {
-				clientMsg = readMsg(input);
+				clientMsg = readMsg();
 				System.out.println("clientMsg: " + clientMsg);
 				String[] inputStrArr = clientMsg.split(":");
 				if ("G".equals(inputStrArr[0])) {
@@ -59,17 +63,9 @@ public class Connections implements Runnable {
 	}
 
 	// read from client
-	public String readMsg(InputStream input) throws IOException {
-		System.out.println("server in read");
-		StringBuilder inputBuilder = new StringBuilder();
-		String inputStr = "";
-		int c = 0;
-		while ((c = input.read()) != 13) {
-			inputBuilder.append((char) c);
-		}
-		c = input.read();
-		inputStr = inputBuilder.toString();
-		return inputStr;
+	public String readMsg() throws IOException {
+		String str = br.readLine();
+		return str;
 	}
 
 	public void writeMsg(OutputStream nextOutput, String msg) throws IOException {

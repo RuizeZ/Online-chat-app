@@ -1,6 +1,8 @@
 package NetworkProgramming.server;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,56 +11,114 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
-public class Server {
-	InputStream is;
-	BufferedReader br;
+public class Server implements MsgHeader {
+	private InputStream is;
+	private OutputStream os;
+	private BufferedReader br;
+	private Map<String, Socket> socketMap;
+	private Socket socket;
 
 	public void createServer(int port) throws IOException {
-		Map<String, Socket> socketMap = new HashMap<>();
+		socketMap = new HashMap<>();
 		ServerSocket serverSocket = new ServerSocket(port);
 		System.out.println("Server Started at " + port);
 		while (true) {
-			Socket socket = serverSocket.accept();
+			socket = serverSocket.accept();
+			System.out.println(socket);
 			is = socket.getInputStream();
+			os = socket.getOutputStream();
 			br = new BufferedReader(new InputStreamReader(is));
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					try {
-						String accountName = readMsg(socket.getInputStream()); // read client accountName
-						String password = readMsg(socket.getInputStream()); // read client password
-						// verify account name and password
-						boolean isCorrect = false;
-						// ..........
-						if (isCorrect) {
-							// send welcome message to client indicating the connection is successful
-							writeMsg(socket.getOutputStream(), "1");
-							socketMap.put(accountName, socket); // store current client name and socket
-							System.out.println(accountName + " is online!");
-							// create a new connection for this client
-							new Thread(new Connections(socket, socketMap, accountName)).start();
-
-						} else {
-							// send welcome message to client indicating the connection is successful
-							writeMsg(socket.getOutputStream(), "0");
+					while (true) {
+						try {
+							// read msg header: login: 1; register: 2
+							int msgHeader = is.read();
+							boolean isLogin = false;
+							switch (msgHeader) {
+							case LOGINHEADER:
+								isLogin = login();
+								break;
+							case REGISTERHEADER:
+								register();
+								break;
+							}
+							if (isLogin) {
+								break;
+							}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
-
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
 					}
+
 				}
+
 			}).start();
 		}
 	}
 
+	/**
+	 * client register a new account
+	 * 
+	 * @throws IOException
+	 */
+	private void register() throws IOException {
+		System.out.println("registing...");
+		String accountName = readMsg(); // read client accountName
+		String password = readMsg(); // read client password
+		// store the new account and password into file
+		File file = new File("accountinfo.txt");
+		FileWriter fileWriter = new FileWriter(file, true);
+		fileWriter.write(accountName + "<>" + password + "\r\n");
+		fileWriter.close();
+	}
+
+	/**
+	 * client login, check the account and password in the "accountinfo.txt"
+	 * 
+	 * @throws IOException
+	 */
+	private boolean login() throws IOException {
+		String accountName = readMsg(); // read client accountName
+		String password = readMsg(); // read client password
+		File file = new File("accountinfo.txt");
+		if (file.exists()) {
+			Scanner scan = new Scanner(file);
+			while (scan.hasNextLine()) {
+				String currAccount = scan.nextLine();
+				System.out.println(currAccount);
+				if (currAccount.startsWith(accountName)) {
+					String[] arr = currAccount.split("<>");// [accountName, password]
+					for (String string : arr) {
+						System.out.println(string);
+					}
+					if (arr.length == 2 && arr[1].equals(password)) {
+						// send welcome message to client indicating the connection is successful
+						System.out.println(accountName + " is online!");
+						writeMsg("1");
+						socketMap.put(accountName, socket); // store current client name and socket
+						// create a new connection for this client
+						new Thread(new Connections(socket, socketMap, accountName)).start();
+						return true;
+					}
+				}
+			}
+		}
+
+		// account and password do not match
+		writeMsg("0");
+		return false;
+	}
+
 	// read from client
-	public String readMsg(InputStream input) throws IOException {
+	public String readMsg() throws IOException {
 		return br.readLine();
 	}
 
-	public void writeMsg(OutputStream nextOutput, String msg) throws IOException {
-		nextOutput.write((msg + "\r\n").getBytes());
+	public void writeMsg(String msg) throws IOException {
+		os.write((msg + "\r\n").getBytes());
 	}
 
 	public static void main(String[] args) {
