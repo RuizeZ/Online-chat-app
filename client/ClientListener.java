@@ -81,7 +81,7 @@ public class ClientListener implements ActionListener {
 		// get text from the chatOutMsgArea
 		String msg = chatOutMsgArea.getText();
 		// 2. show msg in the showChatArea
-		showChatArea.setText(showChatArea.getText() + "\r\n" + msg);
+		showChatArea.setText(showChatArea.getText() + "\r\n" + msg.split(":")[1]);
 		try {
 			client.writeMsg(msg);
 		} catch (Exception e1) {

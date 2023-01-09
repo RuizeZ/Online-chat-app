@@ -11,6 +11,7 @@ public class Client implements MsgHeader {
 	InputStream is;
 	OutputStream os;
 	BufferedReader br;
+	String accountName;
 
 	/**
 	 * connects with server, and receive server welcome message implements all API
@@ -20,7 +21,7 @@ public class Client implements MsgHeader {
 	 * @param port server port
 	 * @param user client name
 	 */
-	public Client(String host, int port, String user) {
+	public Client(String host, int port) {
 		try {
 			Socket socket = new Socket(host, port);
 			is = socket.getInputStream();
@@ -54,6 +55,7 @@ public class Client implements MsgHeader {
 		os.write(LOGINHEADER);// send the header of login msg
 		writeMsg(accountName);
 		writeMsg(password);
+		this.accountName = accountName;
 	}
 
 	/**

@@ -15,7 +15,6 @@ public class ClientUI {
 	private JTextArea chatOutMsgArea = new JTextArea();
 	private JTextField accountField = new JTextField();
 	private JTextField passwordField = new JTextField();
-	private String clientID;
 
 	/**
 	 * Once a client is created, connects with server automatically Generate the
@@ -23,9 +22,8 @@ public class ClientUI {
 	 * 
 	 * @param user the client name
 	 */
-	public ClientUI(String user) {
-		this.clientID = user;
-		client = new Client("127.0.0.1", 8080, clientID);
+	public ClientUI() {
+		client = new Client("127.0.0.1", 8080);
 		listener = new ClientListener(chatOutMsgArea, showChatArea, accountField, passwordField, client);
 		loginUI();
 		// start the client thread
@@ -71,12 +69,12 @@ public class ClientUI {
 	}
 
 	/**
-	 * create the chating UI
+	 * create the chat UI
 	 * 
-	 * @param user user name
+	 * @param user name
 	 */
-	public void chatUI() {
-		JFrame chatFrame = new JFrame("client: " + clientID);
+	public void chatUI(String accountName) {
+		JFrame chatFrame = new JFrame("client " + accountName);
 		chatFrame.setSize(500, 600);
 
 		// center alignment
@@ -106,6 +104,6 @@ public class ClientUI {
 	}
 
 	public static void main(String[] args) {
-		new ClientUI("1");
+		new ClientUI();
 	}
 }

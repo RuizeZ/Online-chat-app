@@ -13,16 +13,16 @@ public class Connections implements Runnable {
 	private BufferedReader br;
 	InputStream input;
 	OutputStream output;
-	Map<String, Socket> socketMap;
-	String userName;
+	Map<User, Socket> socketMap;
+	User user;
 
-	public Connections(Socket socket, Map<String, Socket> socketMap, String userName) throws IOException {
+	public Connections(Socket socket, Map<User, Socket> socketMap, User user) throws IOException {
 		this.socket = socket;
 		input = socket.getInputStream();
 		output = socket.getOutputStream();
 		br = new BufferedReader(new InputStreamReader(input));
 		this.socketMap = socketMap;
-		this.userName = userName;
+		this.user = user;
 	}
 
 	@Override
@@ -37,16 +37,19 @@ public class Connections implements Runnable {
 				if ("G".equals(inputStrArr[0])) {
 					groupChat(inputStrArr[1]);
 				} else {
-					if (socketMap.containsKey(inputStrArr[0])) {
-						OutputStream nextOutput = socketMap.get(inputStrArr[0]).getOutputStream();
-						System.out.println("in private chat");
-						writeMsg(nextOutput, inputStrArr[1]);
-					}
+					privateChar(clientMsg, inputStrArr);
 				}
-
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				break;
+			}
+		}
+	}
+
+	private void privateChar(String clientMsg, String[] inputStrArr) throws IOException {
+		for (User user : socketMap.keySet()) {
+			if (user.getAccountName().equals(inputStrArr[0])) {
+				OutputStream nextOutput = socketMap.get(user).getOutputStream();
+				writeMsg(nextOutput, inputStrArr[1]);
 			}
 		}
 	}
@@ -54,7 +57,7 @@ public class Connections implements Runnable {
 	public void groupChat(String clientMsg) throws IOException {
 		// group chat
 		System.out.println("in group chat");
-		for (Map.Entry<String, Socket> entry : socketMap.entrySet()) {
+		for (Map.Entry<User, Socket> entry : socketMap.entrySet()) {
 			if (entry.getValue() != socket) {
 				OutputStream nextOutput = entry.getValue().getOutputStream();
 				writeMsg(nextOutput, clientMsg);
@@ -69,7 +72,7 @@ public class Connections implements Runnable {
 	}
 
 	public void writeMsg(OutputStream nextOutput, String msg) throws IOException {
-		nextOutput.write((userName + ": " + msg + "\r\n").getBytes());
+		nextOutput.write((user.getAccountName() + ": " + msg + "\r\n").getBytes());
 	}
 
 }

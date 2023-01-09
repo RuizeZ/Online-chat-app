@@ -24,12 +24,12 @@ public class ClientThread implements Runnable {
 		while (true) {
 			try {
 				String msg = client.readMsg(); // the response from server for validation of account and passport
-				 if ("1".equals(msg)) { // login success
+				if ("1".equals(msg)) { // login success
 					// show the chat UI
-					clientUI.chatUI();
+					clientUI.chatUI(client.accountName);
 				} else if ("0".equals(msg)) {// login fail
 					System.out.println("account name and password do not match");
-				} else {
+				} else { // receive msg
 					showChatArea.setText(showChatArea.getText() + "\r\n" + msg); // show message history
 				}
 			} catch (Exception e) {
