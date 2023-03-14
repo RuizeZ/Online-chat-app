@@ -22,8 +22,15 @@ public class ClientThread implements Runnable {
 	public void run() {
 		// put into while, let it read from server all the time
 		while (true) {
+			String msg;
 			try {
-				String msg = client.readMsg(); // the response from server for validation of account and passport
+				msg = client.readMsg(); // the response from server for validation of account and passport
+			} catch (Exception e) {
+				System.out.println("lost connection with server");
+				break;
+			}
+			try {
+
 				if ("1".equals(msg)) { // login success
 					// show the chat UI
 					clientUI.chatUI(client.accountName);
@@ -33,7 +40,6 @@ public class ClientThread implements Runnable {
 					showChatArea.setText(showChatArea.getText() + "\r\n" + msg); // show message history
 				}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

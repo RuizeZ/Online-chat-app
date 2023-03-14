@@ -32,6 +32,14 @@ public class Connections implements Runnable {
 			String clientMsg;
 			try {
 				clientMsg = readMsg();
+			} catch (IOException e) {
+				// client disconnected with server
+				System.out.println(this.user.getAccountName() + " disconnected");
+				socketMap.remove(this.user);
+				System.out.println("Number of online user: " + socketMap.size());
+				break;
+			}
+			try {
 				System.out.println("clientMsg: " + clientMsg);
 				String[] inputStrArr = clientMsg.split(":");
 				if ("G".equals(inputStrArr[0])) {
@@ -40,9 +48,11 @@ public class Connections implements Runnable {
 					privateChar(clientMsg, inputStrArr);
 				}
 			} catch (IOException e) {
-				break;
+				// client disconnected with server
+				e.printStackTrace();
 			}
 		}
+
 	}
 
 	private void privateChar(String clientMsg, String[] inputStrArr) throws IOException {

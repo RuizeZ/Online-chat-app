@@ -22,7 +22,6 @@ public class Server implements MsgHeader {
 		System.out.println("Server Started at " + port);
 		while (true) {
 			socket = serverSocket.accept();
-			System.out.println(socket);
 			is = socket.getInputStream();
 			os = socket.getOutputStream();
 			br = new BufferedReader(new InputStreamReader(is));

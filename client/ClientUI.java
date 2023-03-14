@@ -1,5 +1,7 @@
 package NetworkProgramming.client;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -75,31 +77,71 @@ public class ClientUI {
 	 */
 	public void chatUI(String accountName) {
 		JFrame chatFrame = new JFrame("client " + accountName);
-		chatFrame.setSize(500, 600);
+		Font font = new Font(null, 0, 24);
+		chatFrame.setSize(750, 750);
 
 		// center alignment
 		chatFrame.setLocationRelativeTo(null);
 
 		// set how to close
 		chatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		chatFrame.setLayout(new FlowLayout());
+
+		JPanel centerPanel = new JPanel();
+		centerPanel.setLayout(new BorderLayout());
+		centerPanel.setBackground(Color.white);
+		chatFrame.add(centerPanel, BorderLayout.CENTER);
+
+		// message panel
+		JPanel centerSouthPanle = new JPanel();
+		centerSouthPanle.setLayout(new BorderLayout());
+		centerSouthPanle.setPreferredSize(new Dimension(0, 150));
+		centerSouthPanle.setBackground(Color.WHITE);
+		centerPanel.add(centerSouthPanle, BorderLayout.SOUTH);
+		
+		// add text area
+		chatOutMsgArea.setFont(font);
+		JScrollPane jsc = new JScrollPane(chatOutMsgArea);
+		jsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		centerSouthPanle.add(jsc);
+		
+		// add send button
+		JPanel sendButtonPanle = new JPanel();
+//		sendButtonPanle.setLayout(null);
+		JButton sendButton = new JButton("  send  ");
+		sendButtonPanle.add(sendButton);
+		sendButton.addActionListener(listener);
+		sendButton.setBounds(400, 114, 80, 30);
+		centerSouthPanle.add(sendButtonPanle, BorderLayout.SOUTH);
+
+		// friends list panel
+		JPanel eastPanle = new JPanel();
+		eastPanle.setLayout(new BorderLayout());
+		eastPanle.setPreferredSize(new Dimension(150, 0));
+		eastPanle.setBackground(Color.WHITE);
+		// friends list
+		JScrollPane friendListScrollPane = new JScrollPane();
+		friendListScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+//		friendListScrollPane.setPreferredSize(new Dimension(150, 400));
+		JList<String> userList = new JList<>(new String[] { "a", "b", "c" });
+		userList.setFont(font);
+		friendListScrollPane.setViewportView(userList);
+		eastPanle.add(friendListScrollPane);
+		chatFrame.add(eastPanle, BorderLayout.EAST);
 
 		// show message area
 		// chat history
-		Font font = new Font(null, 0, 24);
+		JPanel centerCentPanel = new JPanel();
+		centerCentPanel.setLayout(new BorderLayout());
+		centerCentPanel.setBackground(Color.WHITE);
+		centerPanel.add(centerCentPanel, BorderLayout.CENTER);
+		
 		showChatArea.setFont(font);
-		showChatArea.setPreferredSize(new Dimension(450, 400));
-		chatFrame.add(showChatArea);
+		showChatArea.setEditable(false);
+		jsc = new JScrollPane(showChatArea);
+		jsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		centerCentPanel.add(jsc);
 
-		// add text area
-		chatOutMsgArea.setFont(font);
-		chatOutMsgArea.setPreferredSize(new Dimension(450, 100));
-		chatFrame.add(chatOutMsgArea);
 
-		// add send button
-		JButton sendButton = new JButton("  send  ");
-		sendButton.addActionListener(listener);
-		chatFrame.add(sendButton);
 		chatFrame.setVisible(true);
 	}
 
