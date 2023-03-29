@@ -1,17 +1,25 @@
 package NetworkProgramming.client;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 
 public class Client implements MsgHeader {
 	InputStream is;
 	OutputStream os;
+	ObjectInputStream ois;
 	BufferedReader br;
 	String accountName;
+	Socket socket;
+	ClientUI clientUI;
 
 	/**
 	 * connects with server, and receive server welcome message implements all API
@@ -21,12 +29,15 @@ public class Client implements MsgHeader {
 	 * @param port server port
 	 * @param user client name
 	 */
-	public Client(String host, int port) {
+	public Client(String host, int port, ClientUI clientUI) {
 		try {
-			Socket socket = new Socket(host, port);
+			socket = new Socket(host, port);
 			is = socket.getInputStream();
 			os = socket.getOutputStream();
 			br = new BufferedReader(new InputStreamReader(is));
+			ois = new ObjectInputStream(is);
+			this.clientUI = clientUI;
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -34,8 +45,17 @@ public class Client implements MsgHeader {
 
 	}
 
+	public int readHeader() throws Exception {
+		System.out.println("in readHeader");
+		int header = is.read();
+		System.out.println(header);
+		return header;
+	}
+
 	public String readMsg() throws Exception {
-		return br.readLine();
+		String readStr = br.readLine();
+		System.out.println(readStr);
+		return readStr;
 	}
 
 	public void writeMsg(String msg) throws Exception {
@@ -56,6 +76,14 @@ public class Client implements MsgHeader {
 		writeMsg(accountName);
 		writeMsg(password);
 		this.accountName = accountName;
+		int header = is.read();
+		System.out.println(header);
+		if (header == LOGINHEADER) {
+			// start the client thread
+			new Thread(new ClientThread(this, clientUI)).start();
+		} else if (header == FAIL) {// login fail
+			System.out.println("account name and password do not match");
+		}
 	}
 
 	/**
@@ -72,4 +100,17 @@ public class Client implements MsgHeader {
 		writeMsg(password);
 	}
 
+	public void updateFriendList() {
+		ArrayList<String> userList;
+		try {
+			userList = (ArrayList<String>) ois.readObject();
+			clientUI.setFriendList(userList);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

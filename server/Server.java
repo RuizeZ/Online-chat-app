@@ -4,20 +4,27 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Server implements MsgHeader {
-	private InputStream is;
-	private OutputStream os;
-	private BufferedReader br;
-	private Map<User, Socket> socketMap;
-	private Socket socket;
+	InputStream is;
+	OutputStream os;
+	BufferedReader br;
+	Map<String, User> userMap;
+	List<Connections> connectionsList;
+	Socket socket;
+	ObjectOutputStream oos;
+	Connections newConnections;
 
 	public void createServer(int port) throws IOException {
-		socketMap = new HashMap<>();
+		userMap = new HashMap<>();
+		connectionsList = new ArrayList<>();
 		ServerSocket serverSocket = new ServerSocket(port);
 		System.out.println("Server Started at " + port);
 		while (true) {
@@ -25,6 +32,8 @@ public class Server implements MsgHeader {
 			is = socket.getInputStream();
 			os = socket.getOutputStream();
 			br = new BufferedReader(new InputStreamReader(is));
+			oos = new ObjectOutputStream(os);
+
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -62,9 +71,8 @@ public class Server implements MsgHeader {
 	private void register() throws IOException {
 		String accountName = br.readLine(); // read client accountName
 		String password = br.readLine(); // read client password
-		User user = new User(accountName, password);
 		boolean result = UserManager.register(accountName, password);
-		if(!result) {
+		if (!result) {
 			System.out.println("account exist");
 		}
 	}
@@ -78,23 +86,37 @@ public class Server implements MsgHeader {
 		String accountName = br.readLine(); // read client accountName
 		String password = br.readLine(); // read client password
 		// create a User object
-		User user = new User(accountName, password);
+		User user = new User(accountName, password, socket);
 		boolean result = UserManager.longin(user, accountName, password);
-		if (result) {
+		if (result && !userMap.containsKey(accountName)) {
 			// send welcome message to client indicating the connection is successful
 			System.out.println(accountName + " is online!");
-			writeMsg("1");
-			socketMap.put(user, socket); // store current client name and socket
+			userMap.put(accountName, user); // store current client name and socket
+			newConnections = new Connections(socket, userMap, user, Server.this);
+			connectionsList.add(newConnections);
+			writeMsg(LOGINHEADER);
 			// create a new connection for this client
-			new Thread(new Connections(socket, socketMap, user)).start();
+			new Thread(newConnections).start();
+			updateAllFriendList();
 			return true;
 		}
-		writeMsg("0");
+		writeMsg(FAIL);
 		return false;
 	}
 
-	public void writeMsg(String msg) throws IOException {
-		os.write((msg + "\r\n").getBytes());
+	public void updateAllFriendList() {
+		for (Connections connections : connectionsList) {
+			try {
+				connections.output.write(FRIENDLIST);
+				connections.oos.writeObject(new ArrayList<>(userMap.keySet()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void writeMsg(byte hearder) throws IOException {
+		os.write(hearder);
 	}
 
 	public static void main(String[] args) {
@@ -106,5 +128,4 @@ public class Server implements MsgHeader {
 			e.printStackTrace();
 		}
 	}
-
 }

@@ -1,5 +1,7 @@
 package NetworkProgramming.server;
 
+import java.net.Socket;
+
 /**
  * User Class contains all user's information
  * 
@@ -8,11 +10,21 @@ package NetworkProgramming.server;
  */
 public class User {
 	private String accountName, password;
+	private Socket socket;
 
-	public User(String accountName, String password) {
+	public User(String accountName, String password, Socket socket) {
 		super();
 		this.accountName = accountName;
 		this.password = password;
+		this.socket = socket;
+	}
+
+	public Socket getSocket() {
+		return socket;
+	}
+
+	public void setSocket(Socket socket) {
+		this.socket = socket;
 	}
 
 	public String getAccountName() {

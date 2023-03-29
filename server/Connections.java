@@ -4,30 +4,34 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.*;
 
-public class Connections implements Runnable {
+public class Connections implements Runnable, MsgHeader {
 	Socket socket;
 	private BufferedReader br;
 	InputStream input;
 	OutputStream output;
-	Map<User, Socket> socketMap;
+	ObjectOutputStream oos;
+	Map<String, User> userMap;
 	User user;
+	Server server;
 
-	public Connections(Socket socket, Map<User, Socket> socketMap, User user) throws IOException {
+	public Connections(Socket socket, Map<String, User> socketMap, User user, Server server) throws IOException {
 		this.socket = socket;
-		input = socket.getInputStream();
-		output = socket.getOutputStream();
-		br = new BufferedReader(new InputStreamReader(input));
-		this.socketMap = socketMap;
+		input = server.is;
+		output = server.os;
+		br = server.br;
+		oos = server.oos;
+		this.userMap = socketMap;
 		this.user = user;
+		this.server = server;
 	}
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		while (true) {
 			String clientMsg;
 			try {
@@ -35,8 +39,10 @@ public class Connections implements Runnable {
 			} catch (IOException e) {
 				// client disconnected with server
 				System.out.println(this.user.getAccountName() + " disconnected");
-				socketMap.remove(this.user);
-				System.out.println("Number of online user: " + socketMap.size());
+				userMap.remove(user.getAccountName());
+				server.connectionsList.remove(this);
+				server.updateAllFriendList();
+				System.out.println("Number of online user: " + userMap.size());
 				break;
 			}
 			try {
@@ -45,7 +51,7 @@ public class Connections implements Runnable {
 				if ("G".equals(inputStrArr[0])) {
 					groupChat(inputStrArr[1]);
 				} else {
-					privateChar(clientMsg, inputStrArr);
+					privateChat(clientMsg, inputStrArr);
 				}
 			} catch (IOException e) {
 				// client disconnected with server
@@ -55,10 +61,10 @@ public class Connections implements Runnable {
 
 	}
 
-	private void privateChar(String clientMsg, String[] inputStrArr) throws IOException {
-		for (User user : socketMap.keySet()) {
-			if (user.getAccountName().equals(inputStrArr[0])) {
-				OutputStream nextOutput = socketMap.get(user).getOutputStream();
+	private void privateChat(String clientMsg, String[] inputStrArr) throws IOException {
+		for (String accountName : userMap.keySet()) {
+			if (accountName.equals(inputStrArr[0])) {
+				OutputStream nextOutput = userMap.get(accountName).getSocket().getOutputStream();
 				writeMsg(nextOutput, inputStrArr[1]);
 			}
 		}
@@ -66,10 +72,9 @@ public class Connections implements Runnable {
 
 	public void groupChat(String clientMsg) throws IOException {
 		// group chat
-		System.out.println("in group chat");
-		for (Map.Entry<User, Socket> entry : socketMap.entrySet()) {
-			if (entry.getValue() != socket) {
-				OutputStream nextOutput = entry.getValue().getOutputStream();
+		for (Map.Entry<String, User> entry : userMap.entrySet()) {
+			if (entry.getKey() != user.getAccountName()) {
+				OutputStream nextOutput = entry.getValue().getSocket().getOutputStream();
 				writeMsg(nextOutput, clientMsg);
 			}
 		}
@@ -82,7 +87,12 @@ public class Connections implements Runnable {
 	}
 
 	public void writeMsg(OutputStream nextOutput, String msg) throws IOException {
-		nextOutput.write((user.getAccountName() + ": " + msg + "\r\n").getBytes());
+		nextOutput.write(NEWMSG);
+		byte[] arr = (user.getAccountName() + ": " + msg + "\r\n").getBytes();
+		nextOutput.write(arr);
 	}
 
+	public void writeMsg(byte hearder) throws IOException {
+		output.write(hearder);
+	}
 }

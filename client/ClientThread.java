@@ -1,18 +1,22 @@
 package NetworkProgramming.client;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import javax.swing.JTextArea;
 
-public class ClientThread implements Runnable {
+public class ClientThread implements Runnable, MsgHeader {
 
 	private Client client;
 	private JTextArea showChatArea;
 	private ClientUI clientUI;
 
-	public ClientThread(Client client, JTextArea showChatArea, ClientUI clientUI) {
+	public ClientThread(Client client, ClientUI clientUI) {
 		super();
 		this.client = client;
-		this.showChatArea = showChatArea;
 		this.clientUI = clientUI;
+		clientUI.chatUI(client.accountName);
 	}
 
 	/**
@@ -22,22 +26,19 @@ public class ClientThread implements Runnable {
 	public void run() {
 		// put into while, let it read from server all the time
 		while (true) {
-			String msg;
+			int header;
 			try {
-				msg = client.readMsg(); // the response from server for validation of account and passport
+				header = client.readHeader(); // the response header from server
 			} catch (Exception e) {
 				System.out.println("lost connection with server");
 				break;
 			}
 			try {
-
-				if ("1".equals(msg)) { // login success
-					// show the chat UI
-					clientUI.chatUI(client.accountName);
-				} else if ("0".equals(msg)) {// login fail
-					System.out.println("account name and password do not match");
-				} else { // receive msg
-					showChatArea.setText(showChatArea.getText() + "\r\n" + msg); // show message history
+				if (header == FRIENDLIST) {
+					client.updateFriendList();
+				} else if (header == NEWMSG) { // receive msg
+					System.out.println("newMessage");
+					clientUI.setChatArea(client.readMsg()); // show message history
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
