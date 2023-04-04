@@ -12,10 +12,15 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 public class ClientUI {
 	Client client;
 	JTextArea showChatArea = new JTextArea();
+	JTextPane showChatTextPane = new JTextPane();
 	ClientListener listener;
 	JScrollPane showChatAreaJsc;
 	JTextArea chatOutMsgArea = new JTextArea();
@@ -24,7 +29,7 @@ public class ClientUI {
 	JPanel centerPanel = new JPanel();
 	JList<String> userList;
 	JTextArea currentsShowChatArea;
-	Map<String, JTextArea> userShowChatMap;
+	Map<String, JTextPane> userShowChatMap;
 	JFrame chatFrame;
 	String accountName;
 	Set<String> newMessageFromSet = new HashSet<>();
@@ -38,7 +43,7 @@ public class ClientUI {
 	 * @param user the client name
 	 */
 	public ClientUI() {
-		userShowChatMap = new HashMap<String, JTextArea>();
+		userShowChatMap = new HashMap<String, JTextPane>();
 		client = new Client("127.0.0.1", 8080, this);
 		listener = new ClientListener(this, client);
 		loginUI();
@@ -52,9 +57,9 @@ public class ClientUI {
 		for (String name : client.userList) {
 			if (!userShowChatMap.containsKey(name)) {
 				JTextArea showChatArea = new JTextArea();
-				showChatArea.setFont(font);
-				showChatArea.setEditable(true);
-				userShowChatMap.put(name, showChatArea);
+				JTextPane newShowChatTextPane = new JTextPane();
+				newShowChatTextPane.setFont(font);
+				userShowChatMap.put(name, newShowChatTextPane);
 			}
 		}
 	}
@@ -69,13 +74,12 @@ public class ClientUI {
 		userList.repaint();
 		chatOutMsgArea.setEditable(true);
 		centerPanel.removeAll();
-		showChatArea = userShowChatMap.get(name);
-		showChatArea.setEditable(false);
-		showChatAreaJsc = new JScrollPane(showChatArea);
+		showChatTextPane = userShowChatMap.get(name);
+		showChatTextPane.setEditable(false);
+		showChatAreaJsc = new JScrollPane(showChatTextPane);
 		showChatAreaJsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		centerPanel.add(showChatAreaJsc);
 		centerPanel.revalidate();
-		System.out.println("change ShowChatArea");
 	}
 
 	/**
@@ -197,8 +201,36 @@ public class ClientUI {
 		String[] newMsgArr = newMsg.split(":");
 		newMessageFromSet.add(newMsgArr[0]);
 		userList.repaint();
-		showChatArea = userShowChatMap.get(newMsgArr[0]);
-		showChatArea.setText(showChatArea.getText() + "\r\n" + newMsg);
+		showChatTextPane = userShowChatMap.get(newMsgArr[0]);
+		try {
+			putNewMsgInTextPane(0, newMsg);
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * set text alignment in TextPane
+	 * 
+	 * @param side 0 put text to left; 1 put text to right
+	 * @throws BadLocationException
+	 */
+	public void putNewMsgInTextPane(int side, String msg) throws BadLocationException {
+		StyledDocument doc = showChatTextPane.getStyledDocument();
+		SimpleAttributeSet left = new SimpleAttributeSet();
+		StyleConstants.setAlignment(left, StyleConstants.ALIGN_LEFT);
+
+		SimpleAttributeSet right = new SimpleAttributeSet();
+		StyleConstants.setAlignment(right, StyleConstants.ALIGN_RIGHT);
+		if (side == 0) {
+			doc.insertString(doc.getLength(), "\r\n" + msg, left);
+			doc.setParagraphAttributes(doc.getLength(), 1, left, false);
+		} else {
+			doc.insertString(doc.getLength(), "\r\n" + msg, right);
+			doc.setParagraphAttributes(doc.getLength(), 1, right, false);
+		}
+
 	}
 
 	public void setFriendList(ArrayList<String> userList) {

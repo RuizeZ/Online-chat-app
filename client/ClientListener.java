@@ -9,6 +9,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
 
 /**
  * implements all client listener
@@ -85,7 +86,13 @@ public class ClientListener implements ActionListener, ListSelectionListener {
 		// get text from the chatOutMsgArea
 		String msg = chatOutMsgArea.getText();
 		// 2. show msg in the showChatArea
-		clientUI.showChatArea.setText(clientUI.showChatArea.getText() + "\r\n" + msg);
+		try {
+			clientUI.putNewMsgInTextPane(1, msg);
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		clientUI.showChatArea.setText(clientUI.showChatArea.getText() + "\r\n" + msg);
 		try {
 			client.writeMsg(msg, true);
 		} catch (Exception e1) {
