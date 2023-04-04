@@ -59,7 +59,18 @@ public class Client implements MsgHeader {
 		return readStr;
 	}
 
-	public void writeMsg(String msg) throws Exception {
+	/**
+	 * send message to server
+	 * 
+	 * @param msg    message content
+	 * @param msgOut true if msg is to another user
+	 * @throws Exception
+	 */
+	public void writeMsg(String msg, boolean msgOut) throws Exception {
+		if (msgOut) {
+			String msgOutTo = clientUI.userList.getSelectedValue();
+			os.write((msgOutTo + ":" + msg + "\r\n").getBytes());
+		}
 		System.out.println("send: " + msg);
 		os.write((msg + "\r\n").getBytes());
 		os.flush();
@@ -74,8 +85,8 @@ public class Client implements MsgHeader {
 	 */
 	public void login(String accountName, String password) throws Exception {
 		os.write(LOGINHEADER);// send the header of login msg
-		writeMsg(accountName);
-		writeMsg(password);
+		writeMsg(accountName, false);
+		writeMsg(password, false);
 		this.accountName = accountName;
 		int header = is.read();
 		System.out.println(header);
@@ -97,8 +108,8 @@ public class Client implements MsgHeader {
 	public void register(String accountName, String password) throws Exception {
 		System.out.println("registing...");
 		os.write(REGISTERHEADER);// send the header of register msg
-		writeMsg(accountName);
-		writeMsg(password);
+		writeMsg(accountName, false);
+		writeMsg(password, false);
 	}
 
 	/**

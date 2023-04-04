@@ -70,7 +70,7 @@ public class ClientUI {
 		chatOutMsgArea.setEditable(true);
 		centerPanel.removeAll();
 		showChatArea = userShowChatMap.get(name);
-//		showChatArea.setBackground(new Color((int) (Math.random() * 200), 100, 100));
+		showChatArea.setEditable(false);
 		showChatAreaJsc = new JScrollPane(showChatArea);
 		showChatAreaJsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		centerPanel.add(showChatAreaJsc);
@@ -202,7 +202,6 @@ public class ClientUI {
 	}
 
 	public void setFriendList(ArrayList<String> userList) {
-		System.out.println("set friend list...");
 		this.userList.setListData(userList.toArray(new String[userList.size()]));
 	}
 

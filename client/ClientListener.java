@@ -85,9 +85,9 @@ public class ClientListener implements ActionListener, ListSelectionListener {
 		// get text from the chatOutMsgArea
 		String msg = chatOutMsgArea.getText();
 		// 2. show msg in the showChatArea
-		clientUI.showChatArea.setText(clientUI.showChatArea.getText() + "\r\n" + msg.split(":")[1]);
+		clientUI.showChatArea.setText(clientUI.showChatArea.getText() + "\r\n" + msg);
 		try {
-			client.writeMsg(msg);
+			client.writeMsg(msg, true);
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
