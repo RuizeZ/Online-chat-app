@@ -20,6 +20,7 @@ public class Client implements MsgHeader {
 	String accountName;
 	Socket socket;
 	ClientUI clientUI;
+	ArrayList<String> userList;
 
 	/**
 	 * connects with server, and receive server welcome message implements all API
@@ -100,11 +101,17 @@ public class Client implements MsgHeader {
 		writeMsg(password);
 	}
 
+	/**
+	 * receive friend list from server and remove current client from the list, and
+	 * display the list in UI
+	 */
 	public void updateFriendList() {
-		ArrayList<String> userList;
+
 		try {
 			userList = (ArrayList<String>) ois.readObject();
+			userList.remove(accountName);
 			clientUI.setFriendList(userList);
+			clientUI.updateShowChatAreaToMap();
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

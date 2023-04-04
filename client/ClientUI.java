@@ -6,17 +6,30 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.*;
 
 public class ClientUI {
-	private Client client;
-	private JTextArea showChatArea = new JTextArea();
-	private ClientListener listener;
-	private JTextArea chatOutMsgArea = new JTextArea();
-	private JTextField accountField = new JTextField();
-	private JTextField passwordField = new JTextField();
-	private JList<String> userList;
+	Client client;
+	JTextArea showChatArea = new JTextArea();
+	ClientListener listener;
+	JScrollPane showChatAreaJsc;
+	JTextArea chatOutMsgArea = new JTextArea();
+	JTextField accountField = new JTextField();
+	JTextField passwordField = new JTextField();
+	JPanel centerPanel = new JPanel();
+	JList<String> userList;
+	JTextArea currentsShowChatArea;
+	Map<String, JTextArea> userShowChatMap;
+	JFrame chatFrame;
+	String accountName;
+	Set<String> newMessageFromSet = new HashSet<>();
+	UserListRander userListRander = new UserListRander<>(this);
+	Font font = new Font(null, 0, 24);
 
 	/**
 	 * Once a client is created, connects with server automatically Generate the
@@ -25,10 +38,44 @@ public class ClientUI {
 	 * @param user the client name
 	 */
 	public ClientUI() {
+		userShowChatMap = new HashMap<String, JTextArea>();
 		client = new Client("127.0.0.1", 8080, this);
-		listener = new ClientListener(chatOutMsgArea, showChatArea, accountField, passwordField, client);
+		listener = new ClientListener(this, client);
 		loginUI();
 
+	}
+
+	/**
+	 * add new user and its showChatArea to map
+	 */
+	public void updateShowChatAreaToMap() {
+		for (String name : client.userList) {
+			if (!userShowChatMap.containsKey(name)) {
+				JTextArea showChatArea = new JTextArea();
+				showChatArea.setFont(font);
+				showChatArea.setEditable(true);
+				userShowChatMap.put(name, showChatArea);
+			}
+		}
+	}
+
+	/**
+	 * change showChatArea to show msg history for a certain user
+	 * 
+	 * @param name user accountName
+	 */
+	public void changeShowChatArea(String name) {
+		newMessageFromSet.remove(name);
+		userList.repaint();
+		chatOutMsgArea.setEditable(true);
+		centerPanel.removeAll();
+		showChatArea = userShowChatMap.get(name);
+//		showChatArea.setBackground(new Color((int) (Math.random() * 200), 100, 100));
+		showChatAreaJsc = new JScrollPane(showChatArea);
+		showChatAreaJsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		centerPanel.add(showChatAreaJsc);
+		centerPanel.revalidate();
+		System.out.println("change ShowChatArea");
 	}
 
 	/**
@@ -77,9 +124,12 @@ public class ClientUI {
 	/**
 	 * @param accountName
 	 */
+	/**
+	 * @param accountName
+	 */
 	public void chatUI(String accountName) {
-		JFrame chatFrame = new JFrame("client " + accountName);
-		Font font = new Font(null, 0, 24);
+		chatFrame = new JFrame("client " + accountName);
+
 		chatFrame.setSize(750, 750);
 
 		// center alignment
@@ -87,10 +137,10 @@ public class ClientUI {
 
 		// set how to close
 		chatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		chatFrame.setLayout(new BorderLayout());
 
-		JPanel centerPanel = new JPanel();
+		// show message panel
 		centerPanel.setLayout(new BorderLayout());
-		centerPanel.setBackground(Color.white);
 		chatFrame.add(centerPanel, BorderLayout.CENTER);
 
 		// message panel
@@ -98,17 +148,17 @@ public class ClientUI {
 		centerSouthPanle.setLayout(new BorderLayout());
 		centerSouthPanle.setPreferredSize(new Dimension(0, 150));
 		centerSouthPanle.setBackground(Color.WHITE);
-		centerPanel.add(centerSouthPanle, BorderLayout.SOUTH);
+		chatFrame.add(centerSouthPanle, BorderLayout.SOUTH);
 
 		// add text area
 		chatOutMsgArea.setFont(font);
+		chatOutMsgArea.setEditable(false);
 		JScrollPane jsc = new JScrollPane(chatOutMsgArea);
 		jsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		centerSouthPanle.add(jsc);
 
 		// add send button
 		JPanel sendButtonPanle = new JPanel();
-//		sendButtonPanle.setLayout(null);
 		JButton sendButton = new JButton("  send  ");
 		sendButtonPanle.add(sendButton);
 		sendButton.addActionListener(listener);
@@ -123,30 +173,31 @@ public class ClientUI {
 		// friends list
 		JScrollPane friendListScrollPane = new JScrollPane();
 		friendListScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-//		friendListScrollPane.setPreferredSize(new Dimension(150, 400));
 		userList = new JList<>();
+		userList.setCellRenderer(userListRander);
+		userList.addListSelectionListener(listener);
 		userList.setFont(font);
 		friendListScrollPane.setViewportView(userList);
 		eastPanle.add(friendListScrollPane);
 		chatFrame.add(eastPanle, BorderLayout.EAST);
 
-		// show message area
-		// chat history
-		JPanel centerCentPanel = new JPanel();
-		centerCentPanel.setLayout(new BorderLayout());
-		centerCentPanel.setBackground(Color.WHITE);
-		centerPanel.add(centerCentPanel, BorderLayout.CENTER);
-
+//		 show message area
+//		 chat history
 		showChatArea.setFont(font);
 		showChatArea.setEditable(false);
-		jsc = new JScrollPane(showChatArea);
-		jsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		centerCentPanel.add(jsc);
-
+		showChatArea.setBackground(Color.GRAY);
+		showChatArea.setText("Select a Friend and Start Messaging");
+		showChatAreaJsc = new JScrollPane(showChatArea);
+		showChatAreaJsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		centerPanel.add(showChatAreaJsc);
 		chatFrame.setVisible(true);
 	}
 
-	public void setChatArea(String newMsg) {
+	public void newMessageNotification(String newMsg) {
+		String[] newMsgArr = newMsg.split(":");
+		newMessageFromSet.add(newMsgArr[0]);
+		userList.repaint();
+		showChatArea = userShowChatMap.get(newMsgArr[0]);
 		showChatArea.setText(showChatArea.getText() + "\r\n" + newMsg);
 	}
 

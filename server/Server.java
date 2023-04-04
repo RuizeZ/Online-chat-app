@@ -104,6 +104,9 @@ public class Server implements MsgHeader {
 		return false;
 	}
 
+	/**
+	 * loop through all client by Connections and send userMap list to all clients.
+	 */
 	public void updateAllFriendList() {
 		for (Connections connections : connectionsList) {
 			try {

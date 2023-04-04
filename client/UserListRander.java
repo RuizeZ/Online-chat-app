@@ -1,9 +1,11 @@
 package NetworkProgramming.client;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -11,29 +13,24 @@ import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 
 public class UserListRander<E> implements ListCellRenderer<E> {
-	public JLabel label, imageLabel;
-	public JPanel userPanel;
+	DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();
+	ClientUI clientUI;
 
-	public UserListRander() {
-		// TODO Auto-generated constructor stub
-		userPanel = new JPanel();
-		userPanel.setPreferredSize(new Dimension(100, 50));
-		imageLabel = new JLabel(new ImageIcon("/profile_img.jpg"));
-		imageLabel.setPreferredSize(new Dimension(40, 40));
-		label = new JLabel();
-		label.setOpaque(true);
-		label.setFont(new Font(null, 0, 24));
-		userPanel.add(imageLabel);
-		userPanel.add(label);
+	public UserListRander(ClientUI clientUI) {
+		this.clientUI = clientUI;
 	}
 
 	@Override
 	public Component getListCellRendererComponent(JList<? extends E> list, E value, int index, boolean isSelected,
 			boolean cellHasFocus) {
-		User user = (User)value;
-		label.setText(user.name);
-		
-		return null;
+		Component c = defaultRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+		if (clientUI.newMessageFromSet.contains((String) value)) {
+			if (isSelected) {
+				clientUI.newMessageFromSet.remove((String) value);
+			} else {
+				c.setBackground(new Color(255, 114, 118));
+			}
+		}
+		return c;
 	}
-
 }

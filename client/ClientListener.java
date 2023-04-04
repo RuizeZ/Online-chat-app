@@ -2,9 +2,13 @@ package NetworkProgramming.client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 /**
  * implements all client listener
@@ -12,18 +16,18 @@ import javax.swing.JTextField;
  * @author imrui
  *
  */
-public class ClientListener implements ActionListener {
-	private JTextArea chatOutMsgArea, showChatArea;
+public class ClientListener implements ActionListener, ListSelectionListener {
+	private JTextArea chatOutMsgArea;
 	private JTextField accountField, passwordField;
 	private Client client;
+	private ClientUI clientUI;
 
-	public ClientListener(JTextArea chatOutMsgArea, JTextArea showChatArea, JTextField accountField,
-			JTextField passwordField, Client client) {
+	public ClientListener(ClientUI clientUI, Client client) {
 		super();
-		this.chatOutMsgArea = chatOutMsgArea;
-		this.showChatArea = showChatArea;
-		this.accountField = accountField;
-		this.passwordField = passwordField;
+		this.clientUI = clientUI;
+		this.chatOutMsgArea = clientUI.chatOutMsgArea;
+		this.accountField = clientUI.accountField;
+		this.passwordField = clientUI.passwordField;
 		this.client = client;
 	}
 
@@ -81,7 +85,7 @@ public class ClientListener implements ActionListener {
 		// get text from the chatOutMsgArea
 		String msg = chatOutMsgArea.getText();
 		// 2. show msg in the showChatArea
-		showChatArea.setText(showChatArea.getText() + "\r\n" + msg.split(":")[1]);
+		clientUI.showChatArea.setText(clientUI.showChatArea.getText() + "\r\n" + msg.split(":")[1]);
 		try {
 			client.writeMsg(msg);
 		} catch (Exception e1) {
@@ -90,6 +94,15 @@ public class ClientListener implements ActionListener {
 		}
 		// 3. clear msg in the chatOutMsgArea
 		chatOutMsgArea.setText("");
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		String name = clientUI.userList.getSelectedValue();
+		System.out.println("select: " + name);
+		if (name != null) {
+			clientUI.changeShowChatArea(name);
+		}
 	}
 
 }

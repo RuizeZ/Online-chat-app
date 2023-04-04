@@ -38,7 +38,7 @@ public class ClientThread implements Runnable, MsgHeader {
 					client.updateFriendList();
 				} else if (header == NEWMSG) { // receive msg
 					System.out.println("newMessage");
-					clientUI.setChatArea(client.readMsg()); // show message history
+					clientUI.newMessageNotification(client.readMsg()); // show message history
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
