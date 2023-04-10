@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +16,7 @@ import java.util.Set;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
@@ -34,6 +37,7 @@ public class ClientUI {
 	String accountName;
 	Set<String> newMessageFromSet = new HashSet<>();
 	UserListRander userListRander = new UserListRander<>(this);
+	BufferedImage buffImage; // user image buffer
 	Font font = new Font(null, 0, 24);
 
 	/**
@@ -162,12 +166,17 @@ public class ClientUI {
 		centerSouthPanle.add(jsc);
 
 		// add send button
-		JPanel sendButtonPanle = new JPanel();
-		JButton sendButton = new JButton("  send  ");
-		sendButtonPanle.add(sendButton);
+		JPanel ButtonPanel = new JPanel();
+		ButtonPanel.setLayout(new FlowLayout());
+		JButton sendButton = new JButton("send");
+		ButtonPanel.add(sendButton);
 		sendButton.addActionListener(listener);
 		sendButton.setBounds(400, 114, 80, 30);
-		centerSouthPanle.add(sendButtonPanle, BorderLayout.SOUTH);
+		JButton imgButtonPanle = new JButton("image");
+		ButtonPanel.add(imgButtonPanle);
+		imgButtonPanle.addActionListener(listener);
+		imgButtonPanle.setBounds(400, 114, 80, 30);
+		centerSouthPanle.add(ButtonPanel, BorderLayout.SOUTH);
 
 		// friends list panel
 		JPanel eastPanle = new JPanel();
@@ -230,7 +239,46 @@ public class ClientUI {
 			doc.insertString(doc.getLength(), "\r\n" + msg, right);
 			doc.setParagraphAttributes(doc.getLength(), 1, right, false);
 		}
+	}
 
+	public void putImageInTextPaneRight() {
+		StyledDocument doc = showChatTextPane.getStyledDocument();
+		Style style = doc.addStyle("", null);
+		StyleConstants.setIcon(style, resizeImage());
+		StyleConstants.setAlignment(style, StyleConstants.ALIGN_RIGHT);
+		try {
+			doc.insertString(doc.getLength(), "user image", style);
+			doc.setParagraphAttributes(doc.getLength(), 1, style, false);
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void putImageInTextPaneLeft() {
+		StyledDocument doc = showChatTextPane.getStyledDocument();
+		Style style = doc.addStyle("", null);
+		StyleConstants.setIcon(style, resizeImage());
+		StyleConstants.setAlignment(style, StyleConstants.ALIGN_LEFT);
+		try {
+			doc.insertString(doc.getLength(), "user image", style);
+			doc.setParagraphAttributes(doc.getLength(), 1, style, false);
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * resize the image
+	 * 
+	 * @return ImageIcon
+	 */
+	private ImageIcon resizeImage() {
+		int width = buffImage.getWidth();
+		int height = buffImage.getHeight();
+		Image image = buffImage.getScaledInstance(150, 250, Image.SCALE_DEFAULT);
+		return new ImageIcon(image);
 	}
 
 	public void setFriendList(ArrayList<String> userList) {
