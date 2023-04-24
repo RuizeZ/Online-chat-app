@@ -19,5 +19,8 @@ public interface MsgHeader {
 	public static final byte FRIENDLIST = 4;
 	// new message header
 	public static final byte NEWMSG = 5;
+	// new image header
+	public static final byte NEWIMG = 6;
+	
 
 }

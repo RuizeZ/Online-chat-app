@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -19,6 +20,7 @@ public class Server implements MsgHeader {
 	Map<String, User> userMap;
 	List<Connections> connectionsList;
 	Socket socket;
+	ObjectInputStream ois;
 	ObjectOutputStream oos;
 	Connections newConnections;
 
@@ -33,6 +35,7 @@ public class Server implements MsgHeader {
 			os = socket.getOutputStream();
 			br = new BufferedReader(new InputStreamReader(is));
 			oos = new ObjectOutputStream(os);
+			ois = new ObjectInputStream(is);
 
 			new Thread(new Runnable() {
 				@Override
@@ -91,8 +94,9 @@ public class Server implements MsgHeader {
 		if (result && !userMap.containsKey(accountName)) {
 			// send welcome message to client indicating the connection is successful
 			System.out.println(accountName + " is online!");
-			userMap.put(accountName, user); // store current client name and socket
 			newConnections = new Connections(socket, userMap, user, Server.this);
+			user.connection = newConnections;
+			userMap.put(accountName, user); // store current client name and socket
 			connectionsList.add(newConnections);
 			writeMsg(LOGINHEADER);
 			// create a new connection for this client

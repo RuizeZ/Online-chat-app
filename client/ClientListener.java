@@ -56,8 +56,23 @@ public class ClientListener implements ActionListener, ListSelectionListener {
 				send();
 				break;
 			case "image":
-				clientUI.buffImage = selectImage();
+				BufferedImage newBuffImage = selectImage();
+				clientUI.buffImage = newBuffImage;
 				clientUI.putImageInTextPaneRight();
+
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						try {
+							client.writeImg();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}).start();
+
 				break;
 			}
 		} catch (Exception e2) {

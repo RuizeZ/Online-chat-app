@@ -39,6 +39,7 @@ public class ClientUI {
 	UserListRander userListRander = new UserListRander<>(this);
 	BufferedImage buffImage; // user image buffer
 	Font font = new Font(null, 0, 24);
+	Image image;
 
 	/**
 	 * Once a client is created, connects with server automatically Generate the
@@ -212,7 +213,9 @@ public class ClientUI {
 		userList.repaint();
 		showChatTextPane = userShowChatMap.get(newMsgArr[0]);
 		try {
-			putNewMsgInTextPane(0, newMsg);
+			if (newMsgArr.length == 2) {
+				putNewMsgInTextPane(0, newMsg);
+			}
 		} catch (BadLocationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -227,28 +230,26 @@ public class ClientUI {
 	 */
 	public void putNewMsgInTextPane(int side, String msg) throws BadLocationException {
 		StyledDocument doc = showChatTextPane.getStyledDocument();
-		SimpleAttributeSet left = new SimpleAttributeSet();
-		StyleConstants.setAlignment(left, StyleConstants.ALIGN_LEFT);
-
-		SimpleAttributeSet right = new SimpleAttributeSet();
-		StyleConstants.setAlignment(right, StyleConstants.ALIGN_RIGHT);
+		SimpleAttributeSet attributeSet = new SimpleAttributeSet();
 		if (side == 0) {
-			doc.insertString(doc.getLength(), "\r\n" + msg, left);
-			doc.setParagraphAttributes(doc.getLength(), 1, left, false);
+			StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_LEFT);
 		} else {
-			doc.insertString(doc.getLength(), "\r\n" + msg, right);
-			doc.setParagraphAttributes(doc.getLength(), 1, right, false);
+			StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_RIGHT);
 		}
+		doc.setParagraphAttributes(doc.getLength(), 1, attributeSet, false);
+		doc.insertString(doc.getLength(), msg + "\r\n", attributeSet);
+
 	}
 
 	public void putImageInTextPaneRight() {
 		StyledDocument doc = showChatTextPane.getStyledDocument();
-		Style style = doc.addStyle("", null);
+		SimpleAttributeSet right = new SimpleAttributeSet();
+		StyleConstants.setAlignment(right, StyleConstants.ALIGN_RIGHT);
+		Style style = doc.addStyle("StyleName", null);
 		StyleConstants.setIcon(style, resizeImage());
-		StyleConstants.setAlignment(style, StyleConstants.ALIGN_RIGHT);
 		try {
-			doc.insertString(doc.getLength(), "user image", style);
-			doc.setParagraphAttributes(doc.getLength(), 1, style, false);
+			doc.setParagraphAttributes(doc.getLength(), 0, right, false);
+			doc.insertString(doc.getLength(), "\r\n", style);
 		} catch (BadLocationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -257,12 +258,13 @@ public class ClientUI {
 
 	public void putImageInTextPaneLeft() {
 		StyledDocument doc = showChatTextPane.getStyledDocument();
+		SimpleAttributeSet left = new SimpleAttributeSet();
+		StyleConstants.setAlignment(left, StyleConstants.ALIGN_LEFT);
 		Style style = doc.addStyle("", null);
 		StyleConstants.setIcon(style, resizeImage());
-		StyleConstants.setAlignment(style, StyleConstants.ALIGN_LEFT);
 		try {
-			doc.insertString(doc.getLength(), "user image", style);
-			doc.setParagraphAttributes(doc.getLength(), 1, style, false);
+			doc.setParagraphAttributes(doc.getLength(), 1, left, false);
+			doc.insertString(doc.getLength(), "\r\n", style);
 		} catch (BadLocationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -275,9 +277,7 @@ public class ClientUI {
 	 * @return ImageIcon
 	 */
 	private ImageIcon resizeImage() {
-		int width = buffImage.getWidth();
-		int height = buffImage.getHeight();
-		Image image = buffImage.getScaledInstance(150, 250, Image.SCALE_DEFAULT);
+		image = buffImage.getScaledInstance(150, 250, Image.SCALE_DEFAULT);
 		return new ImageIcon(image);
 	}
 

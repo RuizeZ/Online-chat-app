@@ -11,6 +11,7 @@ import java.net.Socket;
 public class User {
 	private String accountName, password;
 	private Socket socket;
+	Connections connection;
 
 	public User(String accountName, String password, Socket socket) {
 		super();

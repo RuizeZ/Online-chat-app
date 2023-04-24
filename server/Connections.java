@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -14,6 +15,7 @@ public class Connections implements Runnable, MsgHeader {
 	private BufferedReader br;
 	InputStream input;
 	OutputStream output;
+	ObjectInputStream ois;
 	ObjectOutputStream oos;
 	Map<String, User> userMap;
 	User user;
@@ -25,6 +27,7 @@ public class Connections implements Runnable, MsgHeader {
 		output = server.os;
 		br = server.br;
 		oos = server.oos;
+		ois = server.ois;
 		this.userMap = socketMap;
 		this.user = user;
 		this.server = server;
@@ -34,9 +37,28 @@ public class Connections implements Runnable, MsgHeader {
 	public void run() {
 		while (true) {
 			String clientMsg;
+			int header;
 			try {
-				clientMsg = readMsg();
-			} catch (IOException e) {
+				header = readHeader();
+
+				if (header == NEWMSG) {
+					clientMsg = readMsg();
+					System.out.println("clientMsg: " + clientMsg);
+					String[] inputStrArr = clientMsg.split(":");
+					if ("G".equals(inputStrArr[0])) {
+						groupChat(inputStrArr[1]);
+					} else {
+						privateChat(clientMsg, inputStrArr);
+					}
+				} else if (header == NEWIMG) {
+					String clientName = readMsg();
+					User nextUser = userMap.get(clientName);
+					OutputStream nextOutput = nextUser.getSocket().getOutputStream();
+					processImg(nextUser, nextOutput);
+					nextOutput.write((user.getAccountName() + "\r\n").getBytes());
+				}
+
+			} catch (Exception e) {
 				// client disconnected with server
 				System.out.println(this.user.getAccountName() + " disconnected");
 				userMap.remove(user.getAccountName());
@@ -45,20 +67,27 @@ public class Connections implements Runnable, MsgHeader {
 				System.out.println("Number of online user: " + userMap.size());
 				break;
 			}
-			try {
-				System.out.println("clientMsg: " + clientMsg);
-				String[] inputStrArr = clientMsg.split(":");
-				if ("G".equals(inputStrArr[0])) {
-					groupChat(inputStrArr[1]);
-				} else {
-					privateChat(clientMsg, inputStrArr);
-				}
-			} catch (IOException e) {
-				// client disconnected with server
-				e.printStackTrace();
-			}
 		}
 
+	}
+
+	/**
+	 * read pixelList from client, and forward to another client
+	 */
+	private void processImg(User nextUser, OutputStream nextOutput) {
+
+		List<List<Integer>> pixelList = new ArrayList<>();
+		try {
+			pixelList = (ArrayList<List<Integer>>) ois.readObject();
+			System.out.println("h: " + pixelList.size());
+			System.out.println("w: " + pixelList.get(0).size());
+			nextOutput.write(NEWIMG);
+			nextUser.connection.oos.writeObject(pixelList);
+
+		} catch (ClassNotFoundException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void privateChat(String clientMsg, String[] inputStrArr) throws IOException {
@@ -78,6 +107,11 @@ public class Connections implements Runnable, MsgHeader {
 				writeMsg(nextOutput, clientMsg);
 			}
 		}
+	}
+
+	public int readHeader() throws Exception {
+		int header = input.read();
+		return header;
 	}
 
 	// read from client
