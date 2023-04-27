@@ -166,7 +166,7 @@ public class ClientUI {
 		jsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		centerSouthPanle.add(jsc);
 
-		// add send button
+		// add buttons
 		JPanel ButtonPanel = new JPanel();
 		ButtonPanel.setLayout(new FlowLayout());
 		JButton sendButton = new JButton("send");
@@ -177,6 +177,10 @@ public class ClientUI {
 		ButtonPanel.add(imgButtonPanle);
 		imgButtonPanle.addActionListener(listener);
 		imgButtonPanle.setBounds(400, 114, 80, 30);
+		JButton viedoChatButton = new JButton("Video Chat");
+		ButtonPanel.add(viedoChatButton);
+		viedoChatButton.addActionListener(listener);
+		viedoChatButton.setBounds(400, 114, 80, 30);
 		centerSouthPanle.add(ButtonPanel, BorderLayout.SOUTH);
 
 		// friends list panel

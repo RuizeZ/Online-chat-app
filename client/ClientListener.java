@@ -1,20 +1,23 @@
 package NetworkProgramming.client;
 
+import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.BadLocationException;
+
+import com.github.sarxos.webcam.Webcam;
 
 /**
  * implements all client listener
@@ -74,11 +77,41 @@ public class ClientListener implements ActionListener, ListSelectionListener {
 				}).start();
 
 				break;
+			case "Video Chat":
+				new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						showVideo();
+					}
+				}).start();
+
 			}
 		} catch (Exception e2) {
 			e2.printStackTrace();
 		}
 
+	}
+
+	private void showVideo() {
+		JFrame videoFrame = new JFrame("Video");
+		videoFrame.setSize(640, 360);
+		videoFrame.setLocationRelativeTo(null);
+		videoFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		videoFrame.setLayout(new FlowLayout());
+		videoFrame.setVisible(true);
+		Graphics g = videoFrame.getGraphics();
+		BufferedImage bufferedImage;
+		Webcam webcam = Webcam.getDefault();
+		webcam.open();
+		while (true) {
+			bufferedImage = webcam.getImage();
+			g.drawImage(bufferedImage, 0, 0, 640, 360, videoFrame);
+			if (!videoFrame.isShowing()) {
+				break;
+			}
+		}
 	}
 
 	/**
