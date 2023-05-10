@@ -3,6 +3,8 @@ package NetworkProgramming.client;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,6 +20,8 @@ public class Client implements MsgHeader {
 	OutputStream os;
 	ObjectOutputStream oos;
 	ObjectInputStream ois;
+	DataInputStream dis;
+	DataOutputStream dos;
 	BufferedReader br;
 	String accountName;
 	Socket socket;
@@ -40,6 +44,8 @@ public class Client implements MsgHeader {
 			br = new BufferedReader(new InputStreamReader(is));
 			oos = new ObjectOutputStream(os);
 			ois = new ObjectInputStream(is);
+			dis = new DataInputStream(is);
+			dos = new DataOutputStream(os);
 			this.clientUI = clientUI;
 
 		} catch (Exception e) {
@@ -100,6 +106,10 @@ public class Client implements MsgHeader {
 
 	}
 
+	public String getMsgOutTo() {
+		return clientUI.userList.getSelectedValue();
+	}
+
 	public void readImg() {
 		List<List<Integer>> newPixelList = new ArrayList<>();
 		try {
@@ -115,7 +125,7 @@ public class Client implements MsgHeader {
 					clientUI.buffImage.setRGB(j, i, newPixelList.get(i).get(j));
 				}
 			}
-			
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

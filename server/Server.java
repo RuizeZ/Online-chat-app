@@ -1,6 +1,8 @@
 package NetworkProgramming.server;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,6 +25,8 @@ public class Server implements MsgHeader {
 	ObjectInputStream ois;
 	ObjectOutputStream oos;
 	Connections newConnections;
+	DataInputStream dis;
+	DataOutputStream dos;
 
 	public void createServer(int port) throws IOException {
 		userMap = new HashMap<>();
@@ -36,6 +40,8 @@ public class Server implements MsgHeader {
 			br = new BufferedReader(new InputStreamReader(is));
 			oos = new ObjectOutputStream(os);
 			ois = new ObjectInputStream(is);
+			dis = new DataInputStream(is);
+			dos = new DataOutputStream(os);
 
 			new Thread(new Runnable() {
 				@Override

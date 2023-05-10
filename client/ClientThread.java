@@ -42,9 +42,12 @@ public class ClientThread implements Runnable, MsgHeader {
 					clientUI.newMessageNotification(client.readMsg()); // show message history
 				} else if (header == NEWIMG) {
 					client.readImg();
-
 					clientUI.newMessageNotification(client.readMsg());
 					clientUI.putImageInTextPaneLeft();
+				} else if (header == NEWVIDEOCHAT) {
+					String callFrom = client.readMsg();
+					clientUI.videoCaller = callFrom;
+					clientUI.showVideoChat(callFrom);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

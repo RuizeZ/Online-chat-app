@@ -95,23 +95,42 @@ public class ClientListener implements ActionListener, ListSelectionListener {
 	}
 
 	private void showVideo() {
-		JFrame videoFrame = new JFrame("Video");
-		videoFrame.setSize(640, 360);
-		videoFrame.setLocationRelativeTo(null);
-		videoFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		videoFrame.setLayout(new FlowLayout());
-		videoFrame.setVisible(true);
-		Graphics g = videoFrame.getGraphics();
-		BufferedImage bufferedImage;
-		Webcam webcam = Webcam.getDefault();
-		webcam.open();
-		while (true) {
+		try {
+			client.os.write(7);
+			client.os.write((client.getMsgOutTo() + "\r\n").getBytes());
+			JFrame videoFrame = new JFrame("Video");
+			videoFrame.setSize(640, 360);
+			videoFrame.setLocationRelativeTo(null);
+			videoFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+			videoFrame.setLayout(new FlowLayout());
+			videoFrame.setVisible(true);
+			Graphics g = videoFrame.getGraphics();
+			BufferedImage bufferedImage;
+			Webcam webcam = Webcam.getDefault();
+			webcam.open();
+			while (true) {
 			bufferedImage = webcam.getImage();
 			g.drawImage(bufferedImage, 0, 0, 640, 360, videoFrame);
+			int width = bufferedImage.getWidth();
+			client.os.write(width);
+			int height = bufferedImage.getHeight();
+			client.os.write(height);
+			for (int i = 0; i < height; i++) {
+				for (int j = 0; j < width; j++) {
+					client.dos.writeInt(bufferedImage.getRGB(j, i));
+				}
+			}
 			if (!videoFrame.isShowing()) {
+				client.os.write(-1);
 				break;
 			}
 		}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	/**

@@ -5,8 +5,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +24,7 @@ import javax.swing.text.StyledDocument;
 
 public class ClientUI {
 	Client client;
+	JFrame loginFrame;
 	JTextArea showChatArea = new JTextArea();
 	JTextPane showChatTextPane = new JTextPane();
 	ClientListener listener;
@@ -40,6 +43,11 @@ public class ClientUI {
 	BufferedImage buffImage; // user image buffer
 	Font font = new Font(null, 0, 24);
 	Image image;
+	String videoCaller = "";
+
+	JButton sendButton;
+	JButton imgButton;
+	JButton viedoChatButton;
 
 	/**
 	 * Once a client is created, connects with server automatically Generate the
@@ -84,14 +92,51 @@ public class ClientUI {
 		showChatAreaJsc = new JScrollPane(showChatTextPane);
 		showChatAreaJsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		centerPanel.add(showChatAreaJsc);
+		sendButton.setEnabled(true);
+		imgButton.setEnabled(true);
+		viedoChatButton.setEnabled(true);
 		centerPanel.revalidate();
+	}
+
+	/**
+	 * show frame for video chat
+	 * 
+	 * @param name caller name
+	 */
+	public void showVideoChat(String name) {
+		JFrame videoFrame = new JFrame("Video Chat with " + name);
+		videoFrame.setSize(640, 360);
+		videoFrame.setLocationRelativeTo(null);
+		videoFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		videoFrame.setLayout(new FlowLayout());
+		videoFrame.setVisible(true);
+		Graphics g = videoFrame.getGraphics();
+		int width = 0;
+		int height = 0;
+		BufferedImage bufferedImage = null;
+		while (width != -1 && height != -1) {
+			try {
+				width = client.is.read();
+				height = client.is.read();
+				bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+				for (int i = 0; i < height; i++) {
+					for (int j = 0; j < width; j++) {
+						bufferedImage.setRGB(j, i, client.dis.readInt());
+					}
+				}
+				g.drawImage(bufferedImage, 0, 0, 640, 360, videoFrame);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
 	 * create user login UI
 	 */
 	public void loginUI() {
-		JFrame loginFrame = new JFrame("Login");
+		loginFrame = new JFrame("Login");
 		loginFrame.setSize(450, 400);
 
 		// center alignment
@@ -169,18 +214,21 @@ public class ClientUI {
 		// add buttons
 		JPanel ButtonPanel = new JPanel();
 		ButtonPanel.setLayout(new FlowLayout());
-		JButton sendButton = new JButton("send");
+		sendButton = new JButton("send");
 		ButtonPanel.add(sendButton);
 		sendButton.addActionListener(listener);
 		sendButton.setBounds(400, 114, 80, 30);
-		JButton imgButtonPanle = new JButton("image");
-		ButtonPanel.add(imgButtonPanle);
-		imgButtonPanle.addActionListener(listener);
-		imgButtonPanle.setBounds(400, 114, 80, 30);
-		JButton viedoChatButton = new JButton("Video Chat");
+		imgButton = new JButton("image");
+		ButtonPanel.add(imgButton);
+		imgButton.addActionListener(listener);
+		imgButton.setBounds(400, 114, 80, 30);
+		viedoChatButton = new JButton("Video Chat");
 		ButtonPanel.add(viedoChatButton);
 		viedoChatButton.addActionListener(listener);
 		viedoChatButton.setBounds(400, 114, 80, 30);
+		sendButton.setEnabled(false);
+		imgButton.setEnabled(false);
+		viedoChatButton.setEnabled(false);
 		centerSouthPanle.add(ButtonPanel, BorderLayout.SOUTH);
 
 		// friends list panel
@@ -208,6 +256,8 @@ public class ClientUI {
 		showChatAreaJsc = new JScrollPane(showChatArea);
 		showChatAreaJsc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		centerPanel.add(showChatAreaJsc);
+		loginFrame.setVisible(false);
+		loginFrame.setEnabled(false);
 		chatFrame.setVisible(true);
 	}
 

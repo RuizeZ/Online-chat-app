@@ -21,5 +21,7 @@ public interface MsgHeader {
 	public static final byte NEWMSG = 5;
 	// new image header
 	public static final byte NEWIMG = 6;
+	// new video chat header
+	public static final byte NEWVIDEOCHAT = 7;
 
 }

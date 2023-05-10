@@ -1,6 +1,8 @@
 package NetworkProgramming.server;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,6 +17,8 @@ public class Connections implements Runnable, MsgHeader {
 	private BufferedReader br;
 	InputStream input;
 	OutputStream output;
+	DataInputStream dis;
+	DataOutputStream dos;
 	ObjectInputStream ois;
 	ObjectOutputStream oos;
 	Map<String, User> userMap;
@@ -28,9 +32,12 @@ public class Connections implements Runnable, MsgHeader {
 		br = server.br;
 		oos = server.oos;
 		ois = server.ois;
+		dis = server.dis;
+		dos = server.dos;
 		this.userMap = socketMap;
 		this.user = user;
 		this.server = server;
+
 	}
 
 	@Override
@@ -56,6 +63,9 @@ public class Connections implements Runnable, MsgHeader {
 					OutputStream nextOutput = nextUser.getSocket().getOutputStream();
 					processImg(nextUser, nextOutput);
 					nextOutput.write((user.getAccountName() + "\r\n").getBytes());
+				} else if (header == NEWVIDEOCHAT) {
+					String clientName = readMsg();
+					processVideoChat(clientName);
 				}
 
 			} catch (Exception e) {
@@ -69,6 +79,33 @@ public class Connections implements Runnable, MsgHeader {
 			}
 		}
 
+	}
+
+	/**
+	 * process the video image
+	 */
+	private void processVideoChat(String clientName) {
+		int width = 0;
+		int height = 0;
+		try {
+			OutputStream nextOutput = userMap.get(clientName).getSocket().getOutputStream();
+			DataOutputStream nextDos = new DataOutputStream(nextOutput);
+			nextOutput.write(NEWVIDEOCHAT);
+			nextOutput.write((user.getAccountName() + "\n\r").getBytes());
+			while (width != -1 && height != -1) {
+				width = input.read();
+				nextOutput.write(width);
+				height = input.read();
+				nextOutput.write(height);
+				for (int i = 0; i < height; i++) {
+					for (int j = 0; j < width; j++) {
+						nextDos.writeInt(dis.readInt());
+					}
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+		}
 	}
 
 	/**
@@ -116,7 +153,9 @@ public class Connections implements Runnable, MsgHeader {
 
 	// read from client
 	public String readMsg() throws IOException {
+		System.out.println(10);
 		String str = br.readLine();
+		System.out.println(11);
 		return str;
 	}
 
